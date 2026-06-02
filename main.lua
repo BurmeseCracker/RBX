@@ -1,5 +1,5 @@
 -- CENTRAL EXECUTION ENVIRONMENT HANDLER
-local GithubBase = "https://raw.githubusercontent.com/BurmeseCracker/RBX/new/main"
+local GithubBase = "https://raw.githubusercontent.com/BurmeseCracker/RBX/refs/heads/main/main.lua"
 
 local function getGitHubFile(fileName)
     local success, content = pcall(function()
