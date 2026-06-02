@@ -1,60 +1,103 @@
+-- gui.lua
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 return function(AnimationDatabase, CoreHookFunction)
-    -- Protect against duplicate instances running simultaneously 
-    if CoreGui:FindFirstChild("AnimBundleMenu") then CoreGui.AnimBundleMenu:Destroy() end
+    if CoreGui:FindFirstChild("AnimBundleMenu") then 
+        CoreGui.AnimBundleMenu:Destroy() 
+    end
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "AnimBundleMenu"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.Parent = CoreGui
 
+    -- Helper function to make ANY UI element smoothly draggable anywhere on screen
+    local function makeDraggable(frame)
+        local dragging, dragInput, dragStart, startPos
+
+        local function update(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                update(input)
+            end
+        end)
+    end
+
     --------------------------------------------------------------------
-    -- 1. FLOATING MENU ICON (Toggle Button)
+    -- 1. ROUND "EMOTE" MENU ICON (Draggable Anywhere)
     --------------------------------------------------------------------
     local MenuIcon = Instance.new("TextButton")
     MenuIcon.Name = "MenuIcon"
-    MenuIcon.Size = UDim2.new(0, 45, 0, 45)
-    MenuIcon.Position = UDim2.new(0.02, 0, 0.3, 0) -- Positioned safely on the left side
-    MenuIcon.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-    MenuIcon.Text = "🏃‍♂️" -- Running emoji icon
-    MenuIcon.TextSize = 22
+    MenuIcon.Size = UDim2.new(0, 60, 0, 60) -- Perfect square for aspect ratio rounding
+    MenuIcon.Position = UDim2.new(0.02, 0, 0.3, 0)
+    MenuIcon.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+    MenuIcon.Text = "Emote"
+    MenuIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MenuIcon.Font = Enum.Font.GothamBold
+    MenuIcon.TextSize = 13
     MenuIcon.BorderSizePixel = 0
     MenuIcon.ZIndex = 5
     MenuIcon.Parent = ScreenGui
 
     local IconCorner = Instance.new("UICorner")
-    IconCorner.CornerRadius = UDim.new(0, 12)
+    IconCorner.CornerRadius = UDim.new(1, 0) -- Pure circle constraint
     IconCorner.Parent = MenuIcon
 
-    -- Subtle hover effect for the icon
+    makeDraggable(MenuIcon) -- Enable dragging for the icon
+
+    -- Smooth Hover Tweens for the Emote Button
     MenuIcon.MouseEnter:Connect(function()
-        TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(55, 55, 60)}):Play()
+        TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 130, 210)}):Play()
     end)
     MenuIcon.MouseLeave:Connect(function()
-        TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 45)}):Play()
+        TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 162, 255)}):Play()
     end)
 
     --------------------------------------------------------------------
-    -- 2. MAIN WINDOW CONTAINER
+    -- 2. MAIN WINDOW CONTAINER (Draggable Anywhere)
     --------------------------------------------------------------------
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(0, 310, 0, 350)
-    MainFrame.Position = UDim2.new(0.02, 55, 0.3, 0) -- Opens right next to the icon
+    MainFrame.Position = UDim2.new(0.02, 70, 0.3, 0) -- Opens cleanly adjacent to the button
     MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
-    MainFrame.Draggable = true 
-    MainFrame.Visible = true -- Starts open, can be toggled via the icon
+    MainFrame.Visible = true
     MainFrame.Parent = ScreenGui
 
     local UICorner = Instance.new("UICorner")
     UICorner.CornerRadius = UDim.new(0, 10)
     UICorner.Parent = MainFrame
 
-    -- Main Frame Header Title
+    makeDraggable(MainFrame) -- Enable dragging for the main frame window
+
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0, 45)
     Title.BackgroundTransparency = 1
@@ -64,7 +107,6 @@ return function(AnimationDatabase, CoreHookFunction)
     Title.TextSize = 13
     Title.Parent = MainFrame
 
-    -- Scrollable Container for the Packs
     local ScrollFrame = Instance.new("ScrollingFrame")
     ScrollFrame.Size = UDim2.new(1, -20, 1, -55)
     ScrollFrame.Position = UDim2.new(0, 10, 0, 45)
@@ -78,18 +120,28 @@ return function(AnimationDatabase, CoreHookFunction)
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     UIListLayout.Parent = ScrollFrame
 
-    --------------------------------------------------------------------
-    -- 3. TOGGLE VISIBILITY LOGIC
-    --------------------------------------------------------------------
+    -- Open/Close visibility toggle logic
+    local dragThreshold = false
+    MenuIcon.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragThreshold = false
+        end
+    end)
+    MenuIcon.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragThreshold = true -- Prevents the menu from opening/closing while dragging it
+        end
+    end)
     MenuIcon.MouseButton1Click:Connect(function()
-        MainFrame.Visible = not MainFrame.Visible
+        if not dragThreshold then
+            MainFrame.Visible = not MainFrame.Visible
+        end
     end)
 
     --------------------------------------------------------------------
-    -- 4. DYNAMIC PACK ENTRIES (Label + Action Button Rows)
+    -- 3. DYNAMIC PACK ENTRIES (Label + Button Rows)
     --------------------------------------------------------------------
     for bundleName, bundleLinks in pairs(AnimationDatabase) do
-        -- Row container for the distinct Pack Item
         local PackRow = Instance.new("Frame")
         PackRow.Size = UDim2.new(1, -6, 0, 45)
         PackRow.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
@@ -100,7 +152,6 @@ return function(AnimationDatabase, CoreHookFunction)
         RowCorner.CornerRadius = UDim.new(0, 6)
         RowCorner.Parent = PackRow
 
-        -- Left Side Label: Displays the name of the package
         local PackLabel = Instance.new("TextLabel")
         PackLabel.Size = UDim2.new(0.6, -10, 1, 0)
         PackLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -112,10 +163,9 @@ return function(AnimationDatabase, CoreHookFunction)
         PackLabel.TextXAlignment = Enum.TextXAlignment.Left
         PackLabel.Parent = PackRow
 
-        -- Right Side Button: Executes the asset injection hook
         local ApplyButton = Instance.new("TextButton")
         ApplyButton.Size = UDim2.new(0.4, -10, 0, 30)
-        ApplyButton.Position = UDim2.new(0.6, 5, 0.5, -15) -- Centered vertically
+        ApplyButton.Position = UDim2.new(0.6, 5, 0.5, -15)
         ApplyButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
         ApplyButton.BorderSizePixel = 0
         ApplyButton.Text = "Equip"
@@ -128,8 +178,11 @@ return function(AnimationDatabase, CoreHookFunction)
         BtnCorner.CornerRadius = UDim.new(0, 4)
         BtnCorner.Parent = ApplyButton
 
-        -- Connect click events instantly to your backend core module logic
+        local isProcessing = false
         ApplyButton.MouseButton1Click:Connect(function()
+            if isProcessing then return end
+            isProcessing = true
+            
             ApplyButton.Text = "Loading..."
             ApplyButton.BackgroundColor3 = Color3.fromRGB(200, 140, 20)
             
@@ -137,11 +190,12 @@ return function(AnimationDatabase, CoreHookFunction)
             
             task.wait(0.4)
             ApplyButton.Text = "Active"
-            ApplyButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) -- Changes green to show success
+            ApplyButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+            isProcessing = false
         end)
     end
 
-    -- Handle dynamically scrolling bounds layout parameters safely
+    -- Canvas auto-scaling configurations
     ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
     UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
