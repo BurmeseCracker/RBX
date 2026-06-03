@@ -13,7 +13,6 @@ return function(AnimationDatabase, CoreHookFunction)
 	ScreenGui.ResetOnSpawn = false
 	ScreenGui.Parent = CoreGui
 
-	-- Universal Smooth Draggable Module Engine
 	local function makeDraggable(frame)
 		local dragging, dragInput, dragStart, startPos
 		local function update(input)
@@ -38,9 +37,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		end)
 	end
 
-	--------------------------------------------------------------------
 	-- 1. FLOATING ROUND "EMOTE" ICON
-	--------------------------------------------------------------------
 	local MenuIcon = Instance.new("TextButton")
 	MenuIcon.Name = "MenuIcon"
 	MenuIcon.Size = UDim2.new(0, 60, 0, 60)
@@ -67,9 +64,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 162, 255)}):Play()
 	end)
 
-	--------------------------------------------------------------------
 	-- 2. MAIN WINDOW CONTAINER
-	--------------------------------------------------------------------
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Name = "MainFrame"
 	MainFrame.Size = UDim2.new(0, 310, 0, 350)
@@ -101,12 +96,13 @@ return function(AnimationDatabase, CoreHookFunction)
 	ScrollFrame.BackgroundTransparency = 1
 	ScrollFrame.ScrollBarThickness = 4
 	ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
-	ScrollFrame.Parent = MainFrame
+	ScrollFrame.Parent = ScrollFrame
 
 	local UIListLayout = Instance.new("UIListLayout")
 	UIListLayout.Padding = UDim.new(0, 8)
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.Parent = ScrollFrame
+	ScrollFrame.Parent = MainFrame
 
 	local dragThreshold = false
 	MenuIcon.InputBegan:Connect(function(input)
@@ -119,9 +115,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		if not dragThreshold then MainFrame.Visible = not MainFrame.Visible end
 	end)
 
-	--------------------------------------------------------------------
 	-- 3. STOP COMPONENT CONTROLLER FUNCTION
-	--------------------------------------------------------------------
 	local currentActiveTrack = nil
 
 	local function showStopButton()
@@ -159,9 +153,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		end)
 	end
 
-	--------------------------------------------------------------------
-	-- 4. DYNAMIC PACK ROW ENGINES (Reads names dynamically)
-	--------------------------------------------------------------------
+	-- 4. DYNAMIC PACK ROW ENGINES
 	for bundleName, bundleLinks in pairs(AnimationDatabase) do
 		local PackRow = Instance.new("Frame")
 		PackRow.Size = UDim2.new(1, -6, 0, 45)
@@ -177,7 +169,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		PackLabel.Size = UDim2.new(0.6, -10, 1, 0)
 		PackLabel.Position = UDim2.new(0, 10, 0, 0)
 		PackLabel.BackgroundTransparency = 1
-		PackLabel.Text = tostring(bundleName) -- Correctly sets name to "CuteSit", "GrayscaledIdle", etc.
+		PackLabel.Text = tostring(bundleName)
 		PackLabel.TextColor3 = Color3.fromRGB(235, 235, 235)
 		PackLabel.Font = Enum.Font.GothamMedium
 		PackLabel.TextSize = 13
