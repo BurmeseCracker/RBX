@@ -5,7 +5,10 @@ local localPlayer = Players.LocalPlayer
 
 return function(linksData)
 	local character = localPlayer.Character
-	if not character then return nil warn("Character not found!") end
+	if not character then 
+		warn("Character not found!")
+		return nil 
+	end
 	
 	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
 	local animator = humanoid and (humanoid:FindFirstChildWhichIsA("Animator") or Instance.new("Animator", humanoid))
@@ -15,7 +18,10 @@ return function(linksData)
 	-- MODE 1: SINGLE TRACK OBJECT PLAYBACK
 	--------------------------------------------------------------------
 	if type(linksData) == "string" or type(linksData) == "number" then
-		if not animator then return nil warn("Animator engine not available!") end
+		if not animator then 
+			warn("Animator engine not available!")
+			return nil 
+		end
 		
 		local assetUrl = tostring(linksData)
 		if not assetUrl:find("rbxassetid://") then
@@ -32,7 +38,7 @@ return function(linksData)
 					local track = animator:LoadAnimation(instance)
 					track.Priority = Enum.AnimationPriority.Action
 					track:Play()
-					activeTrack = track -- Capture track reference to return it
+					activeTrack = track 
 					print("Successfully playing standalone track: " .. tostring(instance.Name))
 					return true
 				end
@@ -45,7 +51,7 @@ return function(linksData)
 			for _, obj in ipairs(objects) do
 				if playFirstAnimation(obj) then break end
 			end
-			return activeTrack -- Returns the track object back to the GUI script
+			return activeTrack 
 		end
 		return nil
 	end
@@ -53,7 +59,10 @@ return function(linksData)
 	--------------------------------------------------------------------
 	-- MODE 2: BUNDLE HOOK OVERRIDE
 	--------------------------------------------------------------------
-	if not animateScript then return nil warn("Character core Animate script not active!") end
+	if not animateScript then 
+		warn("Character core Animate script not active!")
+		return nil 
+	end
 
 	for stateName, assetUrl in pairs(linksData) do
 		local targetFolder = animateScript:FindFirstChild(stateName)
@@ -107,5 +116,5 @@ return function(linksData)
 		task.wait(0.05)
 		humanoid.WalkSpeed = currentSpeed
 	end
-	return "bundle" -- Returns a string keyword signifying a system-wide movement swap
+	return "bundle" 
 end
