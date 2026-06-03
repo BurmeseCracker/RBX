@@ -125,15 +125,12 @@ return function(AnimationDatabase, CoreHookFunction)
 	local currentActiveTrack = nil
 
 	local function showStopButton()
-		-- Make primary interface frames completely disappear
 		MenuIcon.Visible = false
 		MainFrame.Visible = false
 		
-		-- Create a dedicated floating Red circular Stop button
 		local StopButton = Instance.new("TextButton")
 		StopButton.Name = "StopAnimButton"
 		StopButton.Size = UDim2.new(0, 60, 0, 60)
-		-- Spawns exactly where your original Emote icon layout sat
 		StopButton.Position = MenuIcon.Position 
 		StopButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
 		StopButton.Text = "🛑 Stop"
@@ -151,23 +148,19 @@ return function(AnimationDatabase, CoreHookFunction)
 		makeDraggable(StopButton)
 
 		StopButton.MouseButton1Click:Connect(function()
-			-- If a standalone active animation track is currently playing, force stop it
 			if currentActiveTrack and currentActiveTrack ~= "bundle" then
 				currentActiveTrack:Stop()
 			end
 			currentActiveTrack = nil
 			
-			-- Destroy the stop container button entirely
 			StopButton:Destroy()
-			
-			-- Re-appear original interface mechanics
 			MenuIcon.Visible = true
 			MainFrame.Visible = true
 		end)
 	end
 
 	--------------------------------------------------------------------
-	-- 4. DYNAMIC PACK ROW ENGINES
+	-- 4. DYNAMIC PACK ROW ENGINES (Reads names dynamically)
 	--------------------------------------------------------------------
 	for bundleName, bundleLinks in pairs(AnimationDatabase) do
 		local PackRow = Instance.new("Frame")
@@ -184,7 +177,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		PackLabel.Size = UDim2.new(0.6, -10, 1, 0)
 		PackLabel.Position = UDim2.new(0, 10, 0, 0)
 		PackLabel.BackgroundTransparency = 1
-		PackLabel.Text = bundleName
+		PackLabel.Text = tostring(bundleName) -- Correctly sets name to "CuteSit", "GrayscaledIdle", etc.
 		PackLabel.TextColor3 = Color3.fromRGB(235, 235, 235)
 		PackLabel.Font = Enum.Font.GothamMedium
 		PackLabel.TextSize = 13
@@ -214,7 +207,6 @@ return function(AnimationDatabase, CoreHookFunction)
 			ApplyButton.Text = "Loading..."
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(200, 140, 20)
 			
-			-- Run core code handler and log returned asset context
 			local resultTrack = CoreHookFunction(bundleLinks)
 			
 			task.wait(0.4)
@@ -222,7 +214,6 @@ return function(AnimationDatabase, CoreHookFunction)
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
 			isProcessing = false
 			
-			-- If asset compilation succeeded, execute the UI state toggle sequence
 			if resultTrack then
 				currentActiveTrack = resultTrack
 				showStopButton()
