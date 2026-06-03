@@ -101,7 +101,8 @@ return function(AnimationDatabase, CoreHookFunction)
 	ScrollFrame.BackgroundTransparency = 1
 	ScrollFrame.ScrollBarThickness = 4
 	ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
-	ScrollFrame.Parent = MainFrame -- FIX: Correctly parenting to MainFrame now!
+	ScrollFrame.ClipsDescendants = true
+	ScrollFrame.Parent = MainFrame -- FIXED: Correctly attached to MainFrame container!
 
 	local UIListLayout = Instance.new("UIListLayout")
 	UIListLayout.Padding = UDim.new(0, 8)
@@ -164,7 +165,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	--------------------------------------------------------------------
 	for bundleName, bundleLinks in pairs(AnimationDatabase) do
 		local PackRow = Instance.new("Frame")
-		PackRow.Size = UDim2.new(1, -6, 0, 45)
+		PackRow.Size = UDim2.new(1, 0, 0, 45)
 		PackRow.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
 		PackRow.BorderSizePixel = 0
 		PackRow.Parent = ScrollFrame
@@ -221,8 +222,11 @@ return function(AnimationDatabase, CoreHookFunction)
 		end)
 	end
 
-	ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
-	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
-	end)
+	-- FIXED: Forces the scroll area container to resize dynamically to reveal all row listings
+	local function updateScrollSize()
+		ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 15)
+	end
+	
+	updateScrollSize()
+	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrollSize)
 end
