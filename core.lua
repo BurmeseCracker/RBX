@@ -15,7 +15,7 @@ return function(linksData)
 	local animateScript = character:FindFirstChild("Animate")
 
 	--------------------------------------------------------------------
-	-- MODE 1: SINGLE TRACK OBJECT PLAYBACK
+	-- MODE 1: STANDALONE EMOTES (CutePose, CuteSit, ZEN, GrayscaledIdle, etc.)
 	--------------------------------------------------------------------
 	if type(linksData) == "string" or type(linksData) == "number" then
 		if not animator then 
@@ -53,7 +53,7 @@ return function(linksData)
 			end
 			
 			if activeTrack then
-				-- Return a cleanup function for the standalone track
+				-- Stop button callback for standalone emotes
 				return function()
 					activeTrack:Stop()
 				end
@@ -63,14 +63,14 @@ return function(linksData)
 	end
 
 	--------------------------------------------------------------------
-	-- MODE 2: BUNDLE HOOK OVERRIDE (WITH BACKUP)
+	-- MODE 2: MOVEMENT BUNDLES (AdidasAura Pack)
 	--------------------------------------------------------------------
 	if not animateScript then 
 		warn("Character core Animate script not active!")
 		return nil 
 	end
 
-	-- Back up the original animation configuration
+	-- Back up original animations before changing them
 	local originalBackup = {}
 	for stateName, _ in pairs(linksData) do
 		local targetFolder = animateScript:FindFirstChild(stateName)
@@ -87,7 +87,7 @@ return function(linksData)
 		end
 	end
 
-	-- Apply new pack animations
+	-- Overwrite character animation states
 	for stateName, assetUrl in pairs(linksData) do
 		local targetFolder = animateScript:FindFirstChild(stateName)
 		if targetFolder then
@@ -134,7 +134,6 @@ return function(linksData)
 		end
 	end
 	
-	-- Refresh animations smoothly
 	local function refreshAnimate()
 		if humanoid then
 			local currentSpeed = humanoid.WalkSpeed
@@ -145,7 +144,7 @@ return function(linksData)
 	end
 	refreshAnimate()
 
-	-- Return a cleanup function that fully restores original movement settings
+	-- Stop button callback for bundles: fully restores backup defaults instantly
 	return function()
 		if not animateScript or not animateScript.Parent then return end
 		for stateName, savedAnims in pairs(originalBackup) do
