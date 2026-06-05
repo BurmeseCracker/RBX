@@ -13,7 +13,6 @@ return function(AnimationDatabase, CoreHookFunction)
 	ScreenGui.ResetOnSpawn = false
 	ScreenGui.Parent = CoreGui
 
-	-- Universal Smooth Draggable Module Engine
 	local function makeDraggable(frame)
 		local dragging, dragInput, dragStart, startPos
 		local function update(input)
@@ -102,7 +101,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	ScrollFrame.ScrollBarThickness = 4
 	ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
 	ScrollFrame.ClipsDescendants = true
-	ScrollFrame.Parent = MainFrame -- FIXED: Correctly attached to MainFrame container!
+	ScrollFrame.Parent = MainFrame
 
 	local UIListLayout = Instance.new("UIListLayout")
 	UIListLayout.Padding = UDim.new(0, 8)
@@ -123,7 +122,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	--------------------------------------------------------------------
 	-- 3. STOP COMPONENT CONTROLLER FUNCTION
 	--------------------------------------------------------------------
-	local currentActiveTrack = nil
+	local currentStopCallback = nil
 
 	local function showStopButton()
 		MenuIcon.Visible = false
@@ -149,10 +148,11 @@ return function(AnimationDatabase, CoreHookFunction)
 		makeDraggable(StopButton)
 
 		StopButton.MouseButton1Click:Connect(function()
-			if currentActiveTrack and currentActiveTrack ~= "bundle" then
-				currentActiveTrack:Stop()
+			-- Executes the dynamic animation cleaner function
+			if type(currentStopCallback) == "function" then
+				pcall(currentStopCallback)
 			end
-			currentActiveTrack = nil
+			currentStopCallback = nil
 			
 			StopButton:Destroy()
 			MenuIcon.Visible = true
@@ -208,21 +208,20 @@ return function(AnimationDatabase, CoreHookFunction)
 			ApplyButton.Text = "Loading..."
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(200, 140, 20)
 			
-			local resultTrack = CoreHookFunction(bundleLinks)
+			local stopCallback = CoreHookFunction(bundleLinks)
 			
 			task.wait(0.4)
 			ApplyButton.Text = "Equip"
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
 			isProcessing = false
 			
-			if resultTrack then
-				currentActiveTrack = resultTrack
+			if stopCallback then
+				currentStopCallback = stopCallback
 				showStopButton()
 			end
 		end)
 	end
 
-	-- FIXED: Forces the scroll area container to resize dynamically to reveal all row listings
 	local function updateScrollSize()
 		ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 15)
 	end
