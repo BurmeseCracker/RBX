@@ -18,10 +18,16 @@ return {
 	["Punching"] = "rbxassetid://76710893141393",
 	["Headless"] = "rbxassetid://80044657810108",
 	["Chill1"] = "rbxassetid://110571622513305",
-	["LoveU"] = "rbxassetid://122623026395755",
+	["Love1"] = "rbxassetid://84396003438766",
 	["SitCry"] = "rbxassetid://124300863605270",
 	["Haha"] = "rbxassetid://4102315500",
 	["Sad"] = "rbxassetid://4849502101",
+	["Aura"] = "rbxassetid://72752639330978",
+	["HeadPat"] = "rbxassetid://73930469890558",
+	["Love2"] = "rbxassetid://94601583610207",
+	
+	
+	
 
 	
 }
