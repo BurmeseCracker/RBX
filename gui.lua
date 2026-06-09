@@ -13,6 +13,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	ScreenGui.ResetOnSpawn = false
 	ScreenGui.Parent = CoreGui
 
+	-- Universal Smooth Draggable Module Engine
 	local function makeDraggable(frame)
 		local dragging, dragInput, dragStart, startPos
 		local function update(input)
@@ -85,13 +86,14 @@ return function(AnimationDatabase, CoreHookFunction)
 
 	makeDraggable(MainFrame)
 
+	-- FIXED: Title နေရာမှာ Animation နဲ့ Dance ကို ဘေးချင်းယှဉ်ပြီး ကွက်တိထည့်ထားပါတယ်
 	local Title = Instance.new("TextLabel")
 	Title.Size = UDim2.new(1, 0, 0, 45)
 	Title.BackgroundTransparency = 1
-	Title.Text = "ANIMATION BUNDLES"
+	Title.Text = "Animation  |  Dance" 
 	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	Title.Font = Enum.Font.GothamBold
-	Title.TextSize = 13
+	Title.TextSize = 14
 	Title.Parent = MainFrame
 
 	local ScrollFrame = Instance.new("ScrollingFrame")
@@ -148,7 +150,6 @@ return function(AnimationDatabase, CoreHookFunction)
 		makeDraggable(StopButton)
 
 		StopButton.MouseButton1Click:Connect(function()
-			-- Executes the dynamic animation cleaner function
 			if type(currentStopCallback) == "function" then
 				pcall(currentStopCallback)
 			end
@@ -161,13 +162,14 @@ return function(AnimationDatabase, CoreHookFunction)
 	end
 
 	--------------------------------------------------------------------
-	-- 4. DYNAMIC PACK ROW ENGINES
+	-- 4. ROW CREATOR TOOL
 	--------------------------------------------------------------------
-	for bundleName, bundleLinks in pairs(AnimationDatabase) do
+	local function createItemRow(name, links, layoutOrder)
 		local PackRow = Instance.new("Frame")
 		PackRow.Size = UDim2.new(1, 0, 0, 45)
 		PackRow.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
 		PackRow.BorderSizePixel = 0
+		PackRow.LayoutOrder = layoutOrder
 		PackRow.Parent = ScrollFrame
 
 		local RowCorner = Instance.new("UICorner")
@@ -178,7 +180,7 @@ return function(AnimationDatabase, CoreHookFunction)
 		PackLabel.Size = UDim2.new(0.6, -10, 1, 0)
 		PackLabel.Position = UDim2.new(0, 10, 0, 0)
 		PackLabel.BackgroundTransparency = 1
-		PackLabel.Text = tostring(bundleName)
+		PackLabel.Text = tostring(name)
 		PackLabel.TextColor3 = Color3.fromRGB(235, 235, 235)
 		PackLabel.Font = Enum.Font.GothamMedium
 		PackLabel.TextSize = 13
@@ -208,7 +210,7 @@ return function(AnimationDatabase, CoreHookFunction)
 			ApplyButton.Text = "Loading..."
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(200, 140, 20)
 			
-			local stopCallback = CoreHookFunction(bundleLinks)
+			local stopCallback = CoreHookFunction(links)
 			
 			task.wait(0.4)
 			ApplyButton.Text = "Equip"
@@ -222,8 +224,32 @@ return function(AnimationDatabase, CoreHookFunction)
 		end)
 	end
 
+	--------------------------------------------------------------------
+	-- 5. RENDERING DYNAMICALLY (ALL LIST AT ONCE)
+	--------------------------------------------------------------------
+	local orderIndex = 1
+
+	-- ဇယားထဲက Pack တွေကို အရင်စီမယ်
+	for bundleName, bundleLinks in pairs(AnimationDatabase) do
+		if type(bundleLinks) == "table" then
+			createItemRow(bundleName, bundleLinks, orderIndex)
+			orderIndex = orderIndex + 1
+		end
+	end
+
+	-- ပြီးရင် Emotes / Dances တွေကို ဆက်တိုက်ပဲ စီသွားမယ်
+	for bundleName, bundleLinks in pairs(AnimationDatabase) do
+		if type(bundleLinks) ~= "table" then
+			createItemRow(bundleName, bundleLinks, orderIndex)
+			orderIndex = orderIndex + 1
+		end
+	end
+
+	--------------------------------------------------------------------
+	-- 6. AUTO SCROLL CANVAS RESIZER
+	--------------------------------------------------------------------
 	local function updateScrollSize()
-		ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 15)
+		ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 20)
 	end
 	
 	updateScrollSize()
