@@ -60,19 +60,12 @@ return function(AnimationDatabase, CoreHookFunction)
 
 	makeDraggable(MenuIcon)
 
-	MenuIcon.MouseEnter:Connect(function()
-		TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 130, 210)}):Play()
-	end)
-	MenuIcon.MouseLeave:Connect(function()
-		TweenService:Create(MenuIcon, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 162, 255)}):Play()
-	end)
-
 	--------------------------------------------------------------------
 	-- 2. MAIN WINDOW CONTAINER
 	--------------------------------------------------------------------
 	local MainFrame = Instance.new("Frame")
 	MainFrame.Name = "MainFrame"
-	MainFrame.Size = UDim2.new(0, 310, 0, 350)
+	MainFrame.Size = UDim2.new(0, 310, 0, 360)
 	MainFrame.Position = UDim2.new(0.02, 70, 0.3, 0)
 	MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
 	MainFrame.BorderSizePixel = 0
@@ -86,30 +79,84 @@ return function(AnimationDatabase, CoreHookFunction)
 
 	makeDraggable(MainFrame)
 
-	-- FIXED: Title နေရာမှာ Animation နဲ့ Dance ကို ဘေးချင်းယှဉ်ပြီး ကွက်တိထည့်ထားပါတယ်
+	-- MENU TITLE
 	local Title = Instance.new("TextLabel")
-	Title.Size = UDim2.new(1, 0, 0, 45)
+	Title.Size = UDim2.new(1, 0, 0, 40)
 	Title.BackgroundTransparency = 1
-	Title.Text = "Animation  |  Dance" 
+	Title.Text = "Animation"
 	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	Title.Font = Enum.Font.GothamBold
-	Title.TextSize = 14
+	Title.TextSize = 15
 	Title.Parent = MainFrame
 
-	local ScrollFrame = Instance.new("ScrollingFrame")
-	ScrollFrame.Size = UDim2.new(1, -20, 1, -55)
-	ScrollFrame.Position = UDim2.new(0, 10, 0, 45)
-	ScrollFrame.BackgroundTransparency = 1
-	ScrollFrame.ScrollBarThickness = 4
-	ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
-	ScrollFrame.ClipsDescendants = true
-	ScrollFrame.Parent = MainFrame
+	--------------------------------------------------------------------
+	-- SUBTITLE TABS: Emote Titles & Dance Titles
+	--------------------------------------------------------------------
+	local TabContainer = Instance.new("Frame")
+	TabContainer.Size = UDim2.new(1, -20, 0, 30)
+	TabContainer.Position = UDim2.new(0, 10, 0, 40)
+	TabContainer.BackgroundTransparency = 1
+	TabContainer.Parent = MainFrame
 
-	local UIListLayout = Instance.new("UIListLayout")
-	UIListLayout.Padding = UDim.new(0, 8)
-	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.Parent = ScrollFrame
+	local EmoteTabBtn = Instance.new("TextButton")
+	EmoteTabBtn.Size = UDim2.new(0.5, -4, 1, 0)
+	EmoteTabBtn.BackgroundColor3 = Color3.fromRGB(0, 162, 255) -- Default active
+	EmoteTabBtn.Text = "Emote Titles"
+	EmoteTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	EmoteTabBtn.Font = Enum.Font.GothamBold
+	EmoteTabBtn.TextSize = 12
+	EmoteTabBtn.BorderSizePixel = 0
+	EmoteTabBtn.Parent = TabContainer
 
+	local EmoteCorner = Instance.new("UICorner")
+	EmoteCorner.CornerRadius = UDim.new(0, 5)
+	EmoteCorner.Parent = EmoteTabBtn
+
+	local DanceTabBtn = Instance.new("TextButton")
+	DanceTabBtn.Size = UDim2.new(0.5, -4, 1, 0)
+	DanceTabBtn.Position = UDim2.new(0.5, 4, 0, 0)
+	DanceTabBtn.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
+	DanceTabBtn.Text = "Dance Titles"
+	DanceTabBtn.TextColor3 = Color3.fromRGB(180, 180, 185)
+	DanceTabBtn.Font = Enum.Font.GothamBold
+	DanceTabBtn.TextSize = 12
+	DanceTabBtn.BorderSizePixel = 0
+	DanceTabBtn.Parent = TabContainer
+
+	local DanceCorner = Instance.new("UICorner")
+	DanceCorner.CornerRadius = UDim.new(0, 5)
+	DanceCorner.Parent = DanceTabBtn
+
+	--------------------------------------------------------------------
+	-- SCROLL CONTAINERS
+	--------------------------------------------------------------------
+	local EmoteScroll = Instance.new("ScrollingFrame")
+	EmoteScroll.Size = UDim2.new(1, -20, 1, -85)
+	EmoteScroll.Position = UDim2.new(0, 10, 0, 75)
+	EmoteScroll.BackgroundTransparency = 1
+	EmoteScroll.ScrollBarThickness = 4
+	EmoteScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
+	EmoteScroll.Visible = true
+	EmoteScroll.Parent = MainFrame
+
+	local UIList1 = Instance.new("UIListLayout")
+	UIList1.Padding = UDim.new(0, 8)
+	UIList1.Parent = EmoteScroll
+
+	local DanceScroll = Instance.new("ScrollingFrame")
+	DanceScroll.Size = UDim2.new(1, -20, 1, -85)
+	DanceScroll.Position = UDim2.new(0, 10, 0, 75)
+	DanceScroll.BackgroundTransparency = 1
+	DanceScroll.ScrollBarThickness = 4
+	DanceScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
+	DanceScroll.Visible = false
+	DanceScroll.Parent = MainFrame
+
+	local UIList2 = Instance.new("UIListLayout")
+	UIList2.Padding = UDim.new(0, 8)
+	UIList2.Parent = DanceScroll
+
+	-- Toggle Open/Close Menu
 	local dragThreshold = false
 	MenuIcon.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragThreshold = false end
@@ -122,7 +169,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	end)
 
 	--------------------------------------------------------------------
-	-- 3. STOP COMPONENT CONTROLLER FUNCTION
+	-- 3. STOP BUTTON CONTROLLER
 	--------------------------------------------------------------------
 	local currentStopCallback = nil
 
@@ -164,13 +211,12 @@ return function(AnimationDatabase, CoreHookFunction)
 	--------------------------------------------------------------------
 	-- 4. ROW CREATOR TOOL
 	--------------------------------------------------------------------
-	local function createItemRow(name, links, layoutOrder)
+	local function createItemRow(name, links, targetContainer)
 		local PackRow = Instance.new("Frame")
 		PackRow.Size = UDim2.new(1, 0, 0, 45)
 		PackRow.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
 		PackRow.BorderSizePixel = 0
-		PackRow.LayoutOrder = layoutOrder
-		PackRow.Parent = ScrollFrame
+		PackRow.Parent = targetContainer
 
 		local RowCorner = Instance.new("UICorner")
 		RowCorner.CornerRadius = UDim.new(0, 6)
@@ -206,13 +252,12 @@ return function(AnimationDatabase, CoreHookFunction)
 		ApplyButton.MouseButton1Click:Connect(function()
 			if isProcessing then return end
 			isProcessing = true
-			
 			ApplyButton.Text = "Loading..."
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(200, 140, 20)
 			
 			local stopCallback = CoreHookFunction(links)
-			
 			task.wait(0.4)
+			
 			ApplyButton.Text = "Equip"
 			ApplyButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
 			isProcessing = false
@@ -225,33 +270,52 @@ return function(AnimationDatabase, CoreHookFunction)
 	end
 
 	--------------------------------------------------------------------
-	-- 5. RENDERING DYNAMICALLY (ALL LIST AT ONCE)
+	-- 5. FILTERING LOGIC (နာမည်ထဲမှာ Dance ပါမှ Dance ထဲရောက်မယ်)
 	--------------------------------------------------------------------
-	local orderIndex = 1
-
-	-- ဇယားထဲက Pack တွေကို အရင်စီမယ်
 	for bundleName, bundleLinks in pairs(AnimationDatabase) do
-		if type(bundleLinks) == "table" then
-			createItemRow(bundleName, bundleLinks, orderIndex)
-			orderIndex = orderIndex + 1
+		local lowerName = string.lower(bundleName)
+		
+		if string.find(lowerName, "dance") then
+			-- နာမည်ထဲမှာ "dance" လို့ အတိအကျပါမှ Dance Titles အောက် ရောက်မယ်
+			createItemRow(bundleName, bundleLinks, DanceScroll)
+		else
+			-- AdidasAura၊ ZEN၊ CutePose၊ CuteSit စတဲ့ ကျန်တာအားလုံး Emote Titles အောက် ရောက်မယ်
+			createItemRow(bundleName, bundleLinks, EmoteScroll)
 		end
 	end
 
-	-- ပြီးရင် Emotes / Dances တွေကို ဆက်တိုက်ပဲ စီသွားမယ်
-	for bundleName, bundleLinks in pairs(AnimationDatabase) do
-		if type(bundleLinks) ~= "table" then
-			createItemRow(bundleName, bundleLinks, orderIndex)
-			orderIndex = orderIndex + 1
-		end
-	end
+	--------------------------------------------------------------------
+	-- TAB NAVIGATION SWITCH SYSTEM
+	--------------------------------------------------------------------
+	EmoteTabBtn.MouseButton1Click:Connect(function()
+		EmoteTabBtn.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+		EmoteTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		DanceTabBtn.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
+		DanceTabBtn.TextColor3 = Color3.fromRGB(180, 180, 185)
+		
+		EmoteScroll.Visible = true
+		DanceScroll.Visible = false
+	end)
+
+	DanceTabBtn.MouseButton1Click:Connect(function()
+		DanceTabBtn.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+		DanceTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		EmoteTabBtn.BackgroundColor3 = Color3.fromRGB(36, 36, 42)
+		EmoteTabBtn.TextColor3 = Color3.fromRGB(180, 180, 185)
+		
+		DanceScroll.Visible = true
+		EmoteScroll.Visible = false
+	end)
 
 	--------------------------------------------------------------------
 	-- 6. AUTO SCROLL CANVAS RESIZER
 	--------------------------------------------------------------------
-	local function updateScrollSize()
-		ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 20)
+	local function updateScrollSizes()
+		EmoteScroll.CanvasSize = UDim2.new(0, 0, 0, UIList1.AbsoluteContentSize.Y + 15)
+		DanceScroll.CanvasSize = UDim2.new(0, 0, 0, UIList2.AbsoluteContentSize.Y + 15)
 	end
 	
-	updateScrollSize()
-	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrollSize)
+	updateScrollSizes()
+	UIList1:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrollSizes)
+	UIList2:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrollSizes)
 end
