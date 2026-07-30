@@ -15,7 +15,7 @@ return function(linksData)
 	local animateScript = character:FindFirstChild("Animate")
 
 	--------------------------------------------------------------------
-	-- MODE 1: STANDALONE EMOTES (CutePose, CuteSit, ZEN, GrayscaledIdle, etc.)
+	-- MODE 1: STANDALONE EMOTES (CutePose, CuteSit, ZEN, etc.)
 	--------------------------------------------------------------------
 	if type(linksData) == "string" or type(linksData) == "number" then
 		if not animator then 
@@ -23,23 +23,28 @@ return function(linksData)
 			return nil 
 		end
 		
-		local assetUrl = tostring(linksData)
-		if not assetUrl:find("rbxassetid://") then
-			assetUrl = "rbxassetid://" .. assetUrl
+		-- Raw ID အဖြစ် စစ်ထုတ်ခြင်း
+		local rawId = tostring(linksData):match("%d+")
+		if not rawId then
+			warn("Invalid Animation ID format!")
+			return nil
 		end
+		local assetUrl = "rbxassetid://" .. rawId
 		
+		local activeTrack = nil
+
+		-- နည်းလမ်း ၁ - GetObjects သုံးပြီး Asset ထဲမှ Animation ရှာဖွေခြင်း
 		local objects = nil
 		local success = pcall(function() objects = game:GetObjects(assetUrl) end)
 		
 		if success and objects then
-			local activeTrack = nil
 			local function playFirstAnimation(instance)
 				if instance:IsA("Animation") then
 					local track = animator:LoadAnimation(instance)
 					track.Priority = Enum.AnimationPriority.Action
 					track:Play()
 					activeTrack = track 
-					print("Successfully playing standalone track: " .. tostring(instance.Name))
+					print("Successfully playing standalone track via GetObjects: " .. tostring(instance.Name))
 					return true
 				end
 				for _, child in ipairs(instance:GetChildren()) do
@@ -51,13 +56,34 @@ return function(linksData)
 			for _, obj in ipairs(objects) do
 				if playFirstAnimation(obj) then break end
 			end
+		end
+
+		-- နည်းလမ်း ၂ - (FALLBACK) GetObjects မရပါက Direct Animation Instance ဆောက်၍ ပွင့်စေခြင်း
+		if not activeTrack then
+			local directAnim = Instance.new("Animation")
+			directAnim.AnimationId = assetUrl
 			
-			if activeTrack then
-				-- Stop button callback for standalone emotes
-				return function()
-					activeTrack:Stop()
-				end
+			local successLoad, track = pcall(function()
+				return animator:LoadAnimation(directAnim)
+			end)
+
+			if successLoad and track then
+				track.Priority = Enum.AnimationPriority.Action
+				track.Looped = true
+				track:Play()
+				activeTrack = track
+				print("Successfully playing standalone track via Direct Load: " .. rawId)
 			end
+		end
+		
+		if activeTrack then
+			-- Stop button callback for standalone emotes
+			return function()
+				activeTrack:Stop()
+				activeTrack:Destroy()
+			end
+		else
+			warn("Failed to load animation ID: " .. rawId)
 		end
 		return nil
 	end
@@ -91,14 +117,17 @@ return function(linksData)
 	for stateName, assetUrl in pairs(linksData) do
 		local targetFolder = animateScript:FindFirstChild(stateName)
 		if targetFolder then
+			local rawId = tostring(assetUrl):match("%d+")
+			local formattedId = rawId and ("rbxassetid://" .. rawId) or assetUrl
+			
+			local animationFound = false
 			local objects = nil
-			local success = pcall(function() objects = game:GetObjects(assetUrl) end)
+			local success = pcall(function() objects = game:GetObjects(formattedId) end)
 			
 			if not success or not objects then
 				pcall(function()
-					local idNum = tonumber(string.match(assetUrl, "%d+"))
-					if idNum then
-						local container = InsertService:LoadAsset(idNum)
+					if rawId then
+						local container = InsertService:LoadAsset(tonumber(rawId))
 						objects = container:GetChildren()
 					end
 				end)
@@ -128,8 +157,27 @@ return function(linksData)
 				end
 
 				for _, obj in ipairs(objects) do
-					if searchForAnimations(obj) then break end
+					if searchForAnimations(obj) then 
+						animationFound = true
+						break 
+					end
 				end
+			end
+
+			-- Bundle အတွက်လည်း Asset ရှာမတွေ့ခဲ့လျှင် ID ကို တိုက်ရိုက် Folder ထဲ ထည့်ပေးခြင်း
+			if not animationFound and rawId then
+				targetFolder:ClearAllChildren()
+				
+				local newAnim = Instance.new("Animation")
+				newAnim.AnimationId = formattedId
+				newAnim.Name = (stateName == "idle") and "Animation1" or (stateName:sub(1,1):upper() .. stateName:sub(2) .. "Anim")
+				
+				local weightValue = Instance.new("NumberValue")
+				weightValue.Name = "Weight"
+				weightValue.Value = 1
+				weightValue.Parent = newAnim
+				
+				newAnim.Parent = targetFolder
 			end
 		end
 	end
