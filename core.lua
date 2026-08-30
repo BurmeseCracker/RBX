@@ -15,8 +15,13 @@ return function(linksData)
 	local animateScript = character:FindFirstChild("Animate")
 
 	--------------------------------------------------------------------
-	-- MODE 1: STANDALONE EMOTES (CutePose, CuteSit, ZEN, etc.)
+	-- MODE 1: STANDALONE EMOTES & RANDOM DANCES (Table, String, or Number)
 	--------------------------------------------------------------------
+	-- Array / Table ဖြင့် Dance IDs များ ပေးပို့လာလျှင် Table ထဲမှ Random ၁ ခုကို ရွေးယူမည်
+	if type(linksData) == "table" and #linksData > 0 and (type(linksData[1]) == "string" or type(linksData[1]) == "number") then
+		linksData = linksData[math.random(1, #linksData)]
+	end
+
 	if type(linksData) == "string" or type(linksData) == "number" then
 		if not animator then 
 			warn("Animator engine not available!")
@@ -42,6 +47,7 @@ return function(linksData)
 				if instance:IsA("Animation") then
 					local track = animator:LoadAnimation(instance)
 					track.Priority = Enum.AnimationPriority.Action
+					track.Looped = true
 					track:Play()
 					activeTrack = track 
 					print("Successfully playing standalone track via GetObjects: " .. tostring(instance.Name))
@@ -58,7 +64,7 @@ return function(linksData)
 			end
 		end
 
-		-- နည်းလမ်း ၂ - (FALLBACK) GetObjects မရပါက Direct Animation Instance ဆောက်၍ ပွင့်စေခြင်း
+		-- နည်းလမ်း ၂ - (FALLBACK) GetObjects မရပါက Direct Animation Instance ဆောက်၍ ပွင့်စေခြင်း (နမူနာ code နည်းလမ်း)
 		if not activeTrack then
 			local directAnim = Instance.new("Animation")
 			directAnim.AnimationId = assetUrl
@@ -89,7 +95,7 @@ return function(linksData)
 	end
 
 	--------------------------------------------------------------------
-	-- MODE 2: MOVEMENT BUNDLES (AdidasAura Pack)
+	-- MODE 2: MOVEMENT BUNDLES (AdidasAura Pack, etc.)
 	--------------------------------------------------------------------
 	if not animateScript then 
 		warn("Character core Animate script not active!")
@@ -216,3 +222,4 @@ return function(linksData)
 		refreshAnimate()
 	end
 end
+
