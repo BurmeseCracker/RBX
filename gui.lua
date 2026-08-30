@@ -83,7 +83,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	local Title = Instance.new("TextLabel")
 	Title.Size = UDim2.new(1, 0, 0, 40)
 	Title.BackgroundTransparency = 1
-	Title.Text = "Animation"
+	Title.Text = "Animation Pack"
 	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	Title.Font = Enum.Font.GothamBold
 	Title.TextSize = 15
@@ -141,6 +141,7 @@ return function(AnimationDatabase, CoreHookFunction)
 
 	local UIList1 = Instance.new("UIListLayout")
 	UIList1.Padding = UDim.new(0, 8)
+	UIList1.SortOrder = Enum.SortOrder.Name
 	UIList1.Parent = EmoteScroll
 
 	local DanceScroll = Instance.new("ScrollingFrame")
@@ -154,6 +155,7 @@ return function(AnimationDatabase, CoreHookFunction)
 
 	local UIList2 = Instance.new("UIListLayout")
 	UIList2.Padding = UDim.new(0, 8)
+	UIList2.SortOrder = Enum.SortOrder.Name
 	UIList2.Parent = DanceScroll
 
 	-- Toggle Open/Close Menu
@@ -213,6 +215,7 @@ return function(AnimationDatabase, CoreHookFunction)
 	--------------------------------------------------------------------
 	local function createItemRow(name, links, targetContainer)
 		local PackRow = Instance.new("Frame")
+		PackRow.Name = tostring(name)
 		PackRow.Size = UDim2.new(1, 0, 0, 45)
 		PackRow.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
 		PackRow.BorderSizePixel = 0
@@ -270,16 +273,14 @@ return function(AnimationDatabase, CoreHookFunction)
 	end
 
 	--------------------------------------------------------------------
-	-- 5. FILTERING LOGIC (နာမည်ထဲမှာ Dance ပါမှ Dance ထဲရောက်မယ်)
+	-- 5. FILTERING LOGIC
 	--------------------------------------------------------------------
 	for bundleName, bundleLinks in pairs(AnimationDatabase) do
 		local lowerName = string.lower(bundleName)
 		
 		if string.find(lowerName, "dance") then
-			-- နာမည်ထဲမှာ "dance" လို့ အတိအကျပါမှ Dance Titles အောက် ရောက်မယ်
 			createItemRow(bundleName, bundleLinks, DanceScroll)
 		else
-			-- AdidasAura၊ ZEN၊ CutePose၊ CuteSit စတဲ့ ကျန်တာအားလုံး Emote Titles အောက် ရောက်မယ်
 			createItemRow(bundleName, bundleLinks, EmoteScroll)
 		end
 	end
@@ -308,14 +309,16 @@ return function(AnimationDatabase, CoreHookFunction)
 	end)
 
 	--------------------------------------------------------------------
-	-- 6. AUTO SCROLL CANVAS RESIZER
+	-- 6. AUTO SCROLL CANVAS RESIZER (OPTIMIZED)
 	--------------------------------------------------------------------
 	local function updateScrollSizes()
-		EmoteScroll.CanvasSize = UDim2.new(0, 0, 0, UIList1.AbsoluteContentSize.Y + 15)
-		DanceScroll.CanvasSize = UDim2.new(0, 0, 0, UIList2.AbsoluteContentSize.Y + 15)
+		task.defer(function()
+			EmoteScroll.CanvasSize = UDim2.new(0, 0, 0, UIList1.AbsoluteContentSize.Y + 15)
+			DanceScroll.CanvasSize = UDim2.new(0, 0, 0, UIList2.AbsoluteContentSize.Y + 15)
+		end)
 	end
 	
-	updateScrollSizes()
 	UIList1:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrollSizes)
 	UIList2:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrollSizes)
+	updateScrollSizes()
 end
